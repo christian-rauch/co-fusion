@@ -2,21 +2,23 @@
  * This file is part of ElasticFusion.
  *
  * Copyright (C) 2015 Imperial College London
- * 
- * The use of the code within this file and all code within files that 
- * make up the software that is ElasticFusion is permitted for 
- * non-commercial purposes only.  The full terms and conditions that 
- * apply to the code within this file are detailed within the LICENSE.txt 
- * file and at <http://www.imperial.ac.uk/dyson-robotics-lab/downloads/elastic-fusion/elastic-fusion-license/> 
- * unless explicitly stated.  By downloading this file you agree to 
+ *
+ * The use of the code within this file and all code within files that
+ * make up the software that is ElasticFusion is permitted for
+ * non-commercial purposes only.  The full terms and conditions that
+ * apply to the code within this file are detailed within the LICENSE.txt
+ * file and at <http://www.imperial.ac.uk/dyson-robotics-lab/downloads/elastic-fusion/elastic-fusion-license/>
+ * unless explicitly stated.  By downloading this file you agree to
  * comply with these terms.
  *
- * If you wish to use any of this code for commercial purposes then 
+ * If you wish to use any of this code for commercial purposes then
  * please email researchcontracts.engineering@imperial.ac.uk.
  *
  */
 
-#version 330 core
+#version 310 es
+
+precision highp float;
 
 layout(points) in;
 layout(triangle_strip, max_vertices = 4) out;
@@ -56,15 +58,15 @@ void main() {
         else if(colorType0[0] == 3 || vPosition[0].w <= threshold){
             // Times
             vColor0 = vec3(vColor[0].z / float(vTime[0]));
-            
+
             float minimum = 1.0f;
             float maximum = float(vTime[0]);
-            
+
             float ratio = 2 * (vColor[0].z - minimum) / (maximum - minimum);
             vColor0.x = max(0, (1 - ratio));
             vColor0.y = max(0, (ratio - 1));
             vColor0.z = 1.0f - vColor0.x - vColor0.y;
-            
+
             vColor0.xyz *= abs(dot(vNormRad[0].xyz, vec3(1.0, 1.0, 1.0))) + vec3(0.1f, 0.1f, 0.1f);
         }
         else if(colorType0[0] == 4){
@@ -75,13 +77,13 @@ void main() {
             // Grey
             vColor0 = (vec3(.5f, .5f, .5f) * abs(dot(vNormRad[0].xyz, vec3(1.0, 1.0, 1.0)))) + vec3(0.1f, 0.1f, 0.1f);
         }
-    
+
         if(drawWindow0[0] == 1 && vTime[0] - vColor[0].w > timeDelta0[0]){
             vColor0 *= 0.25;
         }
-        
+
         vec3 x = normalize(vec3((vNormRad[0].y - vNormRad[0].z), -vNormRad[0].x, vNormRad[0].x)) * vNormRad[0].w * 1.41421356;
-        
+
         vec3 y = cross(vNormRad[0].xyz, x);
 
         n = signMult * vNormRad[0].xyz;

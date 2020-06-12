@@ -16,7 +16,9 @@
  *
  */
 
-#version 330 core
+#version 310 es
+
+precision highp float;
 
 layout (location = 0) in vec4 vPosition;
 layout (location = 1) in vec4 vColor;

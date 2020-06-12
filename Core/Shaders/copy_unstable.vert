@@ -2,21 +2,21 @@
  * This file is part of ElasticFusion.
  *
  * Copyright (C) 2015 Imperial College London
- * 
- * The use of the code within this file and all code within files that 
- * make up the software that is ElasticFusion is permitted for 
- * non-commercial purposes only.  The full terms and conditions that 
- * apply to the code within this file are detailed within the LICENSE.txt 
- * file and at <http://www.imperial.ac.uk/dyson-robotics-lab/downloads/elastic-fusion/elastic-fusion-license/> 
- * unless explicitly stated.  By downloading this file you agree to 
+ *
+ * The use of the code within this file and all code within files that
+ * make up the software that is ElasticFusion is permitted for
+ * non-commercial purposes only.  The full terms and conditions that
+ * apply to the code within this file are detailed within the LICENSE.txt
+ * file and at <http://www.imperial.ac.uk/dyson-robotics-lab/downloads/elastic-fusion/elastic-fusion-license/>
+ * unless explicitly stated.  By downloading this file you agree to
  * comply with these terms.
  *
- * If you wish to use any of this code for commercial purposes then 
+ * If you wish to use any of this code for commercial purposes then
  * please email researchcontracts.engineering@imperial.ac.uk.
  *
  */
 
-#version 330 core
+#version 310 es
 
 layout (location = 0) in vec4 vPos;
 layout (location = 1) in vec4 vCol;
@@ -55,14 +55,14 @@ void main()
     vPosition = vPos;
     vColor = vCol;
     vNormRad = vNormR;
-    
+
     test = 1;
 
     vec3 localPos = (t_inv * vec4(vPosition.xyz, 1.0f)).xyz;
-    
+
     float x = ((cam.z * localPos.x) / localPos.z) + cam.x;
     float y = ((cam.w * localPos.y) / localPos.z) + cam.y;
-    
+
     vec3 localNorm = normalize(mat3(t_inv) * vNormRad.xyz);
 
     float x_n = x / cols;
@@ -87,7 +87,7 @@ void main()
             for(float j = y_n - (scale * indexYStep * windowMultiplier); j < y_n + (scale * indexYStep * windowMultiplier); j += indexYStep){
 
                uint current = uint(textureLod(indexSampler, vec2(i, j), 0));
-               
+
                if(current > 0U){
 
                    vec4 vertConf = textureLod(vertConfSampler, vec2(i, j), 0);
@@ -101,7 +101,7 @@ void main()
                       sqrt(dot(vertConf.xy - localPos.xy, vertConf.xy - localPos.xy)) < vNormRad.w * 1.4){ // falls within radius
                        count++;
                    }
-                   
+
                    if(colorTime.w == time && // Only possible if lost?
                       vertConf.w > confThreshold && // Surfel in map is good (high conf)
                       vertConf.z > localPos.z && // Surfel in map is behind vertex
@@ -124,15 +124,15 @@ void main()
             }
         }
     }
-    
+
     if(count > 8 || zCount > 4) test = 0;
-    
+
     //New unstable point
     if(vColor.w == -2) vColor.w = time;
-    
+
     //Degenerate case or too unstable
     if((vColor.w == -1 || ((time - vColor.w) > 20 && vPosition.w < confThreshold))) test = 0;
-    
+
     if(vColor.w > 0 && time - vColor.w > timeDelta) test = 1;
 
     if(violationCount > 0) {
@@ -158,13 +158,13 @@ void main()
         const int lookBack = 20;
         int nearNodes[lookBack];
         float nearDists[lookBack];
-        
+
         for(int i = 0; i < lookBack; i++)
         {
             nearNodes[i] = -1;
             nearDists[i] = 16777216.0f;
         }
-        
+
         int poseTime = int(vColor.z);
 
         int foundIndex = 0;
@@ -212,17 +212,17 @@ void main()
         int nearNodeIndex = 0;
 
         int distanceBack = 0;
-        
+
         for(int j = foundIndex; j >= 0; j--)
         {
-            vec3 position = vec3(textureLod(nodeSampler, vec2(((j * 16) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x, 
-                                 textureLod(nodeSampler, vec2(((j * 16 + 1) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x, 
+            vec3 position = vec3(textureLod(nodeSampler, vec2(((j * 16) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x,
+                                 textureLod(nodeSampler, vec2(((j * 16 + 1) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x,
                                  textureLod(nodeSampler, vec2(((j * 16 + 2) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x);
 
             nearNodes[nearNodeIndex] = j;
             nearDists[nearNodeIndex] = sqrt(dot(vPosition.xyz - position, vPosition.xyz - position));
             nearNodeIndex++;
-            
+
             if(++distanceBack == lookBack / 2)
             {
                 break;
@@ -231,8 +231,8 @@ void main()
 
         for(int j = foundIndex + 1; j < int(nodes); j++)
         {
-            vec3 position = vec3(textureLod(nodeSampler, vec2(((j * 16) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x, 
-                                 textureLod(nodeSampler, vec2(((j * 16 + 1) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x, 
+            vec3 position = vec3(textureLod(nodeSampler, vec2(((j * 16) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x,
+                                 textureLod(nodeSampler, vec2(((j * 16 + 1) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x,
                                  textureLod(nodeSampler, vec2(((j * 16 + 2) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x);
 
             nearNodes[nearNodeIndex] = j;
@@ -254,24 +254,24 @@ void main()
                     float t = nearDists[i];
                     nearDists[i] = nearDists[j];
                     nearDists[j] = t;
-                    
+
                     int t2 = nearNodes[i];
                     nearNodes[i] = nearNodes[j];
                     nearNodes[j] = t2;
                 }
             }
         }
-        
+
         float dMax = nearDists[k];
         float nodeWeights[k];
         float weightSum = 0;
 
         for(int j = 0; j < k; j++)
         {
-            vec3 position = vec3(textureLod(nodeSampler, vec2(((nearNodes[j] * 16) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x, 
-                                 textureLod(nodeSampler, vec2(((nearNodes[j] * 16 + 1) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x, 
+            vec3 position = vec3(textureLod(nodeSampler, vec2(((nearNodes[j] * 16) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x,
+                                 textureLod(nodeSampler, vec2(((nearNodes[j] * 16 + 1) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x,
                                  textureLod(nodeSampler, vec2(((nearNodes[j] * 16 + 2) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x);
-    
+
             nodeWeights[j] = pow(1.0f - (sqrt(dot(vPosition.xyz - position, vPosition.xyz - position)) / dMax), 2);
             weightSum += nodeWeights[j];
         }
@@ -280,52 +280,52 @@ void main()
         {
             nodeWeights[j] /= weightSum;
         }
-        
+
         vec3 newPos = vec3(0, 0, 0);
         vec3 newNorm = vec3(0, 0, 0);
-        
+
         for(int i = 0; i < k; i++)
         {
-            vec3 position = vec3(textureLod(nodeSampler, vec2(((nearNodes[i] * 16) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x, 
-                                 textureLod(nodeSampler, vec2(((nearNodes[i] * 16 + 1) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x, 
+            vec3 position = vec3(textureLod(nodeSampler, vec2(((nearNodes[i] * 16) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x,
+                                 textureLod(nodeSampler, vec2(((nearNodes[i] * 16 + 1) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x,
                                  textureLod(nodeSampler, vec2(((nearNodes[i] * 16 + 2) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x);
-                                 
-			vec3 column0 = vec3(textureLod(nodeSampler, vec2(((nearNodes[i] * 16 + 3) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x, 
+
+			vec3 column0 = vec3(textureLod(nodeSampler, vec2(((nearNodes[i] * 16 + 3) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x,
 	                            textureLod(nodeSampler, vec2(((nearNodes[i] * 16 + 4) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x,
 	                            textureLod(nodeSampler, vec2(((nearNodes[i] * 16 + 5) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x);
-	                            
-			vec3 column1 = vec3(textureLod(nodeSampler, vec2(((nearNodes[i] * 16 + 6) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x, 
+
+			vec3 column1 = vec3(textureLod(nodeSampler, vec2(((nearNodes[i] * 16 + 6) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x,
 	                            textureLod(nodeSampler, vec2(((nearNodes[i] * 16 + 7) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x,
 	                            textureLod(nodeSampler, vec2(((nearNodes[i] * 16 + 8) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x);
-	                            
-			vec3 column2 = vec3(textureLod(nodeSampler, vec2(((nearNodes[i] * 16 + 9) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x, 
+
+			vec3 column2 = vec3(textureLod(nodeSampler, vec2(((nearNodes[i] * 16 + 9) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x,
 	                            textureLod(nodeSampler, vec2(((nearNodes[i] * 16 + 10) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x,
 	                            textureLod(nodeSampler, vec2(((nearNodes[i] * 16 + 11) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x);
-	
+
 	        mat3 rotation = mat3(column0, column1, column2);
-	                      
-	        vec3 translation = vec3(textureLod(nodeSampler, vec2(((nearNodes[i] * 16 + 12) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x, 
+
+	        vec3 translation = vec3(textureLod(nodeSampler, vec2(((nearNodes[i] * 16 + 12) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x,
 	                                textureLod(nodeSampler, vec2(((nearNodes[i] * 16 + 13) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x,
 	                                textureLod(nodeSampler, vec2(((nearNodes[i] * 16 + 14) / nodeCols) + (1.0 / (nodeCols * 2)), 0.5), 0).x);
-	
+
 	        newPos += nodeWeights[i] * (rotation * (vPosition.xyz - position) + position + translation);
 	        newNorm += nodeWeights[i] * (transpose(inverse(rotation)) * vNormRad.xyz);
         }
-        
+
         vPosition.xyz = newPos;
         vNormRad.xyz = normalize(newNorm);
 
         if(vPosition.w > confThreshold && isFern == 0)
         {
             localPos = (t_inv * vec4(vPosition.xyz, 1.0f)).xyz;
-            
+
             x = ((cam.z * localPos.x) / localPos.z) + cam.x;
             y = ((cam.w * localPos.y) / localPos.z) + cam.y;
-            
+
             if(localPos.z > 0 && localPos.z < maxDepth && x > 0 && y > 0 && x < cols && y < rows)
             {
                 float currentDepth = float(textureLod(depthSamplerPrediction, vec2(x / cols, y / rows), 0));
-            
+
                 if(currentDepth > 0.0f && localPos.z < currentDepth + 0.1f)
                 {
 	                vColor.w = time;

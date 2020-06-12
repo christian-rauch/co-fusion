@@ -16,7 +16,7 @@
  *
  */
 
-#version 330 core
+#version 310 es
 
 layout (location = 0) in vec4 vPosition;
 layout (location = 1) in vec4 vColor;
@@ -54,7 +54,7 @@ vec3 projectPointImage(vec3 p)
 void main()
 {
     vec4 vPosHome = t_inv * vec4(vPosition.xyz, 1.0);
-    
+
     if(vPosHome.z > maxDepth || vPosHome.z < 0 || vPosition.w < confThreshold || time - vColor.w > timeDelta || vColor.w > maxTime)
     {
         gl_Position = vec4(1000.0f, 1000.0f, 1000.0f, 1000.0f);

@@ -15,9 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#version 330 core
+#version 310 es
 
 #include "color_table.glsl"
+
+precision highp float;
 
 in vec2 texcoord;
 out vec3 FragColor;
